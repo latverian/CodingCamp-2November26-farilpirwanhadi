@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClearSpend — Modern expense and budget visualizer inspired by Google Stitch design system.">
+    <title>ClearSpend — Expense & Budget Visualizer</title>
+    
+    <!-- Google Fonts: Inter & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    
+    <!-- Application Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Chart.js CDN (with error-safe graceful fallback) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window.chartJsFailedToLoad = true;"></script>
+</head>
+<body data-theme="light">
+    <!-- Skip to Main Content Link for Accessibility -->
+    <a href="#mainContent" class="skip-link">Skip to main content</a>
+
+    <!-- Header / Navbar -->
+    <header class="app-header" role="banner">
+        <div class="header-inner">
+            <div class="brand-section">
+                <div class="brand-icon" aria-hidden="true">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">ClearSpend</span>
+                    <span class="brand-subtitle">Visualizer</span>
+                </div>
+            </div>
+
+            <nav class="nav-tabs" role="navigation" aria-label="Main Navigation">
+                <button type="button" class="nav-tab active" data-tab="dashboard" aria-current="page" aria-label="Dashboard Overview">
+                    <span class="material-symbols-outlined nav-icon" aria-hidden="true">dashboard</span>
+                    <span>Dashboard</span>
+                </button>
+                <button type="button" class="nav-tab" id="toggleBudgetModalBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="budgetModal" aria-label="Configure Budget Settings">
+                    <span class="material-symbols-outlined nav-icon" aria-hidden="true">tune</span>
+                    <span>Budget</span>
+                </button>
+                <button type="button" class="nav-tab" id="toggleCategoryModalBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoryModal" aria-label="Manage Custom Categories">
+                    <span class="material-symbols-outlined nav-icon" aria-hidden="true">category</span>
+                    <span>Categories</span>
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <div class="date-badge" id="currentDateBadge" aria-label="Current Date">
+                    <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+                    <span id="headerDateText">Today</span>
+                </div>
+                <button id="themeToggle" class="icon-btn" type="button" aria-label="Switch to dark theme" title="Toggle dark / light theme">
+                    <span class="material-symbols-outlined theme-icon" aria-hidden="true">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content" id="mainContent" role="main">
+        <!-- Top Balance Hero Banner -->
+        <section class="balance-hero" aria-labelledby="walletSummaryHeading">
+            <div class="hero-bg-shapes" aria-hidden="true">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+            </div>
+            
+            <div class="hero-content">
+                <div class="hero-top-row">
+                    <div class="wallet-badge">
+                        <span class="material-symbols-outlined" aria-hidden="true">wallet</span>
+                        <span id="walletSummaryHeading">Wallet Financial Overview</span>
+                    </div>
+                    
+                    <div id="limitAlert" class="budget-alert-pill hidden" role="status" aria-live="polite">
+                        <span class="material-symbols-outlined alert-icon" aria-hidden="true">warning</span>
+                        <span class="alert-text">Budget on track</span>
+                    </div>
+                </div>
+
+                <div class="hero-stats-grid">
+                    <div class="balance-main">
+                        <span class="balance-caption" id="balanceCaption">Available Budget Balance</span>
+                        <div class="balance-values" aria-labelledby="balanceCaption">
+                            <h1 class="balance-number" id="totalBalance" title="Rp 0">Rp 0</h1>
+                            <span class="budget-target-label" id="budgetTargetText">/ Rp 0</span>
+                        </div>
+                    </div>
+
+                    <div class="micro-stats" role="region" aria-label="Key Spending Metrics">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="material-symbols-outlined" aria-hidden="true">trending_down</span>
+                                <span>Total Spent</span>
+                            </div>
+                            <span class="stat-val" id="statTotalExpense" title="Rp 0">Rp 0</span>
+                            <span class="stat-sub" id="statPeriodLabel">All Time</span>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+                                <span>Logged Expenses</span>
+                            </div>
+                            <span class="stat-val" id="statTotalCount">0 Transactions</span>
+                            <span class="stat-sub" id="statAverageExpense">Average: Rp 0</span>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
+                                <span>Top Category</span>
+                            </div>
+                            <span class="stat-val" id="statTopCategory">-</span>
+                            <span class="stat-sub" id="statTopCategoryShare">0% of total spend</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Two Column Workspace Grid (7:5) -->
+        <div class="workspace-grid">
+            <!-- LEFT PANEL: Add Form & History -->
+            <div class="panel-column left-panel">
+                <!-- Add Transaction Card -->
+                <section class="card form-card" aria-labelledby="addTransactionHeading">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="icon-square primary" aria-hidden="true">
+                                <span class="material-symbols-outlined">add_circle</span>
+                            </div>
+                            <h2 id="addTransactionHeading">Add New Expense</h2>
+                        </div>
+                        <span class="currency-tag" aria-label="Currency: Indonesian Rupiah">IDR (Rp)</span>
+                    </div>
+
+                    <!-- Live Notification Banner -->
+                    <div id="formAlert" class="alert-toast hidden" role="status" aria-live="polite">
+                        <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                        <span id="formAlertText">Transaction recorded successfully!</span>
+                    </div>
+
+                    <form id="transactionForm" class="transaction-form" novalidate>
+                        <div class="input-field">
+                            <label for="itemName">Item Description / Purpose <span class="required-mark" aria-hidden="true">*</span></label>
+                            <div class="input-wrapper">
+                                <span class="material-symbols-outlined input-icon" aria-hidden="true">edit_note</span>
+                                <input type="text" id="itemName" name="itemName" placeholder="e.g., Coffee, Fuel, Cinema ticket" required maxlength="120" aria-required="true" autocomplete="off">
+                            </div>
+                            <span class="field-error-msg hidden" id="itemNameError" role="alert">Please provide an item description.</span>
+                        </div>
+
+                        <div class="input-field">
+                            <label for="amount">Expense Amount (Rp) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <div class="input-wrapper">
+                                <span class="currency-prefix" aria-hidden="true">Rp</span>
+                                <input type="number" id="amount" name="amount" placeholder="0" min="1" step="500" required aria-required="true">
+                            </div>
+                            <span class="field-error-msg hidden" id="amountError" role="alert">Please enter a valid amount greater than 0.</span>
+                            
+                            <div class="quick-chips" role="group" aria-label="Quick amount shortcuts">
+                                <span class="chips-label">Quick Add:</span>
+                                <button type="button" class="chip-btn" data-add="10000" aria-label="Add 10,000 Rupiah">+10,000</button>
+                                <button type="button" class="chip-btn" data-add="25000" aria-label="Add 25,000 Rupiah">+25,000</button>
+                                <button type="button" class="chip-btn" data-add="50000" aria-label="Add 50,000 Rupiah">+50,000</button>
+                                <button type="button" class="chip-btn" data-add="100000" aria-label="Add 100,000 Rupiah">+100,000</button>
+                            </div>
+                        </div>
+
+                        <div class="input-field">
+                            <span class="group-label" id="categoryGroupLabel">Select Category <span class="required-mark" aria-hidden="true">*</span></span>
+                            <div class="category-radio-group" id="categoryRadioContainer" role="radiogroup" aria-labelledby="categoryGroupLabel">
+                                <!-- Generated Dynamically by JS with full keyboard & aria support -->
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                            <span>Add Expense</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Transaction History Card -->
+                <section class="card history-card" aria-labelledby="historyHeading">
+                    <div class="card-header responsive-header">
+                        <div class="card-title-group">
+                            <div class="icon-square secondary" aria-hidden="true">
+                                <span class="material-symbols-outlined">history</span>
+                            </div>
+                            <h2 id="historyHeading">Transaction History</h2>
+                        </div>
+                        
+                        <div class="filter-pills" id="categoryPillFilters" role="group" aria-label="Filter transactions by category">
+                            <!-- Category filter pills generated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="search-sort-bar">
+                        <div class="search-box">
+                            <label for="searchInput" class="sr-only">Search transactions</label>
+                            <span class="material-symbols-outlined search-icon" aria-hidden="true">search</span>
+                            <input type="text" id="searchInput" placeholder="Search by description or category..." autocomplete="off">
+                        </div>
+                        <div class="sort-box">
+                            <label for="sortBy" class="sr-only">Sort transactions by</label>
+                            <select id="sortBy" class="custom-select" aria-label="Sort transactions">
+                                <option value="date-desc">Newest First</option>
+                                <option value="date-asc">Oldest First</option>
+                                <option value="amount-desc">Highest Amount</option>
+                                <option value="amount-asc">Lowest Amount</option>
+                                <option value="category">Category (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="transactions-container" id="transactionsList" role="list" aria-label="List of expense transactions">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div id="emptyState" class="empty-state hidden" role="status">
+                        <div class="empty-icon-circle" aria-hidden="true">
+                            <span class="material-symbols-outlined">receipt_long</span>
+                        </div>
+                        <h3>No Transactions Found</h3>
+                        <p>Track your daily expenses to visualize your spending habits and stay within budget.</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT PANEL: Charts & Summary -->
+            <div class="panel-column right-panel">
+                <!-- Spending Distribution Card -->
+                <section class="card chart-card" aria-labelledby="distributionHeading">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="icon-square tertiary" aria-hidden="true">
+                                <span class="material-symbols-outlined">donut_large</span>
+                            </div>
+                            <h2 id="distributionHeading">Spending Distribution</h2>
+                        </div>
+                        <label for="monthFilter" class="sr-only">Filter by time period</label>
+                        <select id="monthFilter" class="custom-select small-select" aria-label="Filter chart by month">
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+
+                    <div class="chart-content-wrapper">
+                        <div class="chart-canvas-box" id="chartBox">
+                            <canvas id="expenseChart" role="img" aria-label="Doughnut chart of expense distribution by category"></canvas>
+                            
+                            <!-- No Data Message -->
+                            <div id="noDataChartMessage" class="chart-no-data hidden" role="status">
+                                <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
+                                <p>No spending data available yet</p>
+                            </div>
+
+                            <!-- Chart.js CDN Failure Graceful Fallback -->
+                            <div id="chartCdnErrorMessage" class="chart-cdn-fallback hidden" role="alert">
+                                <span class="material-symbols-outlined" aria-hidden="true">signal_wifi_bad</span>
+                                <p><strong>Chart Engine Offline</strong></p>
+                                <span>Chart visualization is currently unavailable. Your transactions and summary metrics remain fully accurate.</span>
+                            </div>
+                        </div>
+
+                        <div class="category-legend-list" id="chartLegendList" role="list" aria-label="Category percentage breakdown">
+                            <!-- Category breakdown percentages populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Budget & Monthly Progress Card -->
+                <section class="card budget-card" aria-labelledby="budgetSummaryHeading">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="icon-square accent" aria-hidden="true">
+                                <span class="material-symbols-outlined">monitoring</span>
+                            </div>
+                            <h2 id="budgetSummaryHeading">Budget & Progress</h2>
+                        </div>
+                        <button type="button" class="btn-text-link" id="quickBudgetSettingBtn" aria-label="Change monthly budget limit">Change Limit</button>
+                    </div>
+
+                    <div class="budget-progress-block">
+                        <div class="progress-info-row">
+                            <span>Budget Utilization</span>
+                            <span id="budgetPercentLabel" class="bold-highlight">0%</span>
+                        </div>
+                        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="progressTrack" aria-label="Budget consumption percentage">
+                            <div id="progressBar" class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-sub-row">
+                            <span id="spentProgressText">Spent: Rp 0</span>
+                            <span id="limitProgressText">Limit: Rp 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Mini Cards -->
+                    <div class="category-summary-grid" id="categorySummaryGrid" role="region" aria-label="Category quick breakdown">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Smart Tips Card -->
+                    <div class="smart-tips-box" role="note" aria-label="Financial Tip">
+                        <div class="tips-icon" aria-hidden="true">
+                            <span class="material-symbols-outlined">lightbulb</span>
+                        </div>
+                        <div class="tips-body">
+                            <h4>Smart Financial Tip</h4>
+                            <p id="dynamicTipText">Consistently logging your daily transactions provides clear insights to help optimize your savings.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Accessible Modals -->
+    <!-- Budget Settings Modal -->
+    <div id="budgetModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle" tabindex="-1">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="budgetModalTitle">Monthly Budget Settings</h3>
+                <button type="button" class="modal-close" data-close="budgetModal" aria-label="Close budget settings modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Set your target monthly spending limit. Real-time alert badges will automatically activate when your expenses reach 80% and 100% of this budget.</p>
+                <div class="input-field">
+                    <label for="modalBudgetLimit">Monthly Budget Limit (Rp)</label>
+                    <div class="input-wrapper">
+                        <span class="currency-prefix" aria-hidden="true">Rp</span>
+                        <input type="number" id="modalBudgetLimit" placeholder="e.g., 3000000" min="1" step="50000">
+                    </div>
+                    <span class="field-error-msg hidden" id="modalBudgetError" role="alert">Please enter a valid budget amount greater than 0.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="budgetModal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveModalBudgetBtn">Save Budget</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Manager Modal -->
+    <div id="categoryModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle" tabindex="-1">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Manage Expense Categories</h3>
+                <button type="button" class="modal-close" data-close="categoryModal" aria-label="Close categories modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="new-category-form">
+                    <h4>Add Custom Category</h4>
+                    <div class="form-row-3">
+                        <div class="input-field">
+                            <label for="newCategoryName">Category Name</label>
+                            <input type="text" id="newCategoryName" placeholder="e.g., Groceries, Health" maxlength="30" autocomplete="off">
+                        </div>
+                        <div class="input-field">
+                            <label for="newCategoryIcon">Emoji Icon</label>
+                            <input type="text" id="newCategoryIcon" placeholder="🛍️" maxlength="2" autocomplete="off">
+                        </div>
+                        <div class="input-field">
+                            <label for="newCategoryColor">Color Tag</label>
+                            <input type="color" id="newCategoryColor" value="#9b59b6" class="color-picker-input" aria-label="Select Category Color">
+                        </div>
+                    </div>
+                    <span class="field-error-msg hidden" id="categoryErrorMsg" role="alert"></span>
+                    <button type="button" id="addNewCategoryBtn" class="btn btn-primary btn-sm">
+                        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                        <span>Create Category</span>
+                    </button>
+                </div>
+
+                <div class="existing-categories-section">
+                    <h4>Custom Categories</h4>
+                    <div class="custom-category-list" id="modalCustomCategoriesList" role="list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="categoryModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Quota Warning Toast -->
+    <div id="storageAlertToast" class="storage-alert-toast hidden" role="alert" aria-live="assertive">
+        <span class="material-symbols-outlined" aria-hidden="true">database</span>
+        <div class="toast-text-wrap">
+            <strong>Storage Quota Warning</strong>
+            <span>Your browser storage is nearly full. Please export or delete older entries.</span>
+        </div>
+        <button type="button" class="toast-dismiss-btn" id="dismissStorageAlertBtn" aria-label="Dismiss storage warning">&times;</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer" role="contentinfo">
+        <div class="footer-inner">
+            <span>&copy; 2026 ClearSpend Visualizer &bull;</span>
+            <div class="footer-meta">
+                <span>Storage: <strong class="online-status">Local Browser (Active)</strong></span>
+                <span class="meta-dot" aria-hidden="true">&bull;</span>
+                <span>Currency: IDR (Rp)</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main Logic -->
+    <script src="js/app.js"></script>
+</body>
+</html>

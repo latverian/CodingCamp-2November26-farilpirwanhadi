@@ -1,0 +1,78 @@
+{
+  "project": {
+    "name": "Expense & Budget Visualizer",
+    "version": "1.0.0",
+    "description": "A mobile-friendly web application for tracking daily expenses and visualizing spending patterns by category",
+    "type": "web-application",
+    "status": "completed"
+  },
+  "metadata": {
+    "course": "CodingCamp",
+    "batch": "2November26",
+    "participant": "farilpirwanhadi",
+    "assignment": "Expense & Budget Visualizer",
+    "deadline": "2026-11-09T23:59:00+07:00",
+    "created": "2026-11-04",
+    "lastModified": "2026-11-04"
+  },
+  "tech_stack": {
+    "frontend": [
+      "HTML5",
+      "CSS3",
+      "Vanilla JavaScript (ES6+)"
+    ],
+    "libraries": [
+      "Chart.js (v4.x via CDN)"
+    ],
+    "storage": "Browser Local Storage API",
+    "deployment": "GitHub Pages"
+  },
+  "constraints": {
+    "folders": {
+      "css": "Only 1 CSS file allowed",
+      "js": "Only 1 JavaScript file allowed"
+    },
+    "frameworks": "No frameworks allowed (React, Vue, Angular, etc.)",
+    "backend": "No backend server required",
+    "testing": "No test setup required"
+  },
+  "features": {
+    "required": [
+      "Input form with validation",
+      "Transaction list with delete",
+      "Total balance calculation",
+      "Pie chart visualization",
+      "Local storage persistence"
+    ],
+    "optional_implemented": [
+      "✅ Custom categories with icons and colors",
+      "✅ Monthly summary view with statistics",
+      "✅ Sort/filter transactions with search",
+      "✅ Spending limit alerts with progress bars",
+      "✅ Dark/light mode toggle (blue theme)"
+    ],
+    "design": {
+      "theme": "Blue and White",
+      "layout": "Full-screen two-column grid",
+      "colors": {
+        "primary": "#4A90E2 → #357ABD",
+        "dark_mode": "#2c5282 → #1a365d"
+      }
+    }
+  },
+  "specs": {
+    "requirements": ".kiro/specs/requirements.md",
+    "design": ".kiro/specs/design.md",
+    "tasks": ".kiro/specs/tasks.md"
+  },
+  "submission": {
+    "required": [
+      "AWS Builder ID",
+      "GitHub Repository URL",
+      "Published Website URL (GitHub Pages)",
+      ".kiro folder must be present"
+    ],
+    "platform": "Paperform (opens Thursday)",
+    "format": "Repository name: CodingCamp-2November26-farilpirwanhadi"
+  }
+}
